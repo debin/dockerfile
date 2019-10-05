@@ -11,6 +11,7 @@ RUN wget https://github.com/fatedier/frp/releases/download/v${FRP_VERSION}/frp_$
     && rm -rf frp_${FRP_VERSION}_linux_amd64*      \
     && mkdir /conf      \
     && cp /frps/frp*.ini /conf/
+ADD frps.ini /conf/frps.ini
 
 # Clean APK cache
 RUN rm -rf /var/cache/apk/*
