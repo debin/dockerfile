@@ -10,7 +10,6 @@ sudo docker run -d --name fpm8 --restart=unless-stopped -p 9000:9000 -u $UID:$UI
 ###  run php 5.6
 ```
 sudo docker run -d --name fpm5 --restart=unless-stopped -p 9000:9000 -u $UID:$UID -v /opt/htdocs:/opt/htdocs  blueblue/php-fpm:5.6-fpm-alpine
-
 ```
 
 ###  PHP 8 Cli
@@ -26,7 +25,6 @@ sudo chmod +x /usr/local/bin/php
 
 php -v
 php /opt/htdocs/xxx/xxx.php
-
 ```
 
 ###  PHP 8 composer
@@ -43,6 +41,5 @@ sudo chmod +x /usr/local/bin/composer
 
 composer -V
 composer install -d /opt/htdocs/xxxx
-
 ```
 
