@@ -3,13 +3,23 @@ php-fpm 镜像，已开启FCGI，可用于web服务，也可以用于运行 cli 
 
 ###  run php 8
 ```
-sudo docker run -d --name fpm8 --restart=unless-stopped -p 9000:9000 -u $UID:$UID -v /opt/htdocs:/opt/htdocs  blueblue/php-fpm
+sudo docker run -d --name fpm8 -p 9000:9000 -u $UID:$UID -v /opt/htdocs:/opt/htdocs  blueblue/php-fpm
 
+```
+
+###  run php 8 witch php.ini
+```
+sudo docker run -d --rm --name fpm8  blueblue/php-fpm
+mkdir -p /opt/data/php8
+sudo docker cp fpm8:/usr/local/etc /opt/data/php8/
+sudo docker stop fpm8
+# php.ini path: /opt/data/php8/etc/php/php.ini
+sudo docker run -d --name fpm8 -u $UID:$UID -v /opt/htdocs:/opt/htdocs  -v /opt/data/php8/etc:/usr/local/etc  blueblue/php-fpm
 ```
 
 ###  run php 5.6
 ```
-sudo docker run -d --name fpm5 --restart=unless-stopped -p 9000:9000 -u $UID:$UID -v /opt/htdocs:/opt/htdocs  blueblue/php-fpm:5.6-fpm-alpine
+sudo docker run -d --name fpm5 -p 9000:9000 -u $UID:$UID -v /opt/htdocs:/opt/htdocs  blueblue/php-fpm:5.6-fpm-alpine
 ```
 
 ###  PHP 8 Cli
