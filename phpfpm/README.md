@@ -14,7 +14,7 @@ mkdir -p /opt/data/php8
 sudo docker cp fpm8:/usr/local/etc /opt/data/php8/
 sudo docker stop fpm8
 # php.ini path: /opt/data/php8/etc/php/php.ini
-sudo docker run -d --name fpm8 -u $UID:$UID -v /opt/htdocs:/opt/htdocs  -v /opt/data/php8/etc:/usr/local/etc  blueblue/php-fpm
+sudo docker run -d --name fpm8 -p 9000:9000 -u $UID:$UID -v /opt/htdocs:/opt/htdocs  -v /opt/data/php8/etc:/usr/local/etc  blueblue/php-fpm
 ```
 
 ###  run php 5.6
