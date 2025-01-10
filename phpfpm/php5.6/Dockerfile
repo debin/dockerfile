@@ -3,10 +3,10 @@ FROM php:5.6-fpm-alpine
 LABEL MAINTAINER="debin<touch767@gmail.com>"
 LABEL description="php-fpm 镜像，已开启FCGI，可用于web服务，也可以用于运行 cli 程序。基于php:5.6-fpm-alpine官方镜像，包含redis,memcached,zip,pdo_mysql,composer等扩展"
 
-ENV TZ "Asia/Shanghai"
-ENV TERM xterm
+ENV TZ="Asia/Shanghai"
+# ENV TERM=xterm
 # 默认关闭opcode
-ENV OPCODE 0
+ENV OPCODE=0
 
 ARG REDIS_VERSION=4.3.0
 ARG MEMCACHED_VERSION=2.2.0
@@ -20,7 +20,7 @@ ARG COMPOSER_VERSION=latest-2.2.x
 # PHPIZE_DEPS 包含 gcc g++ 等编译辅助类库，完成编译后删除
 RUN apk update \
     && apk add $PHPIZE_DEPS \
-    && apk add  --no-cache zlib-dev libmemcached-dev \
+    && apk add  --no-cache tzdata zlib-dev libmemcached-dev \
     && pecl install memcached-${MEMCACHED_VERSION} \
     && docker-php-ext-enable memcached \
     && pecl install redis-${REDIS_VERSION} \
@@ -36,6 +36,7 @@ RUN apk update \
     && docker-php-ext-install -j$(nproc) mysql \
     && docker-php-ext-install -j$(nproc) mysqli \
     && docker-php-ext-install -j$(nproc) pdo_mysql \
+    && docker-php-ext-install -j$(nproc) pcntl \
 # 安装composer
     && curl https://getcomposer.org/download/${COMPOSER_VERSION}/composer.phar  -o /usr/local/bin/composer \
     && chmod +x /usr/local/bin/composer \
@@ -49,4 +50,5 @@ RUN apk update \
 RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"  \
     && sed -i 's/^;* *date.timezone.*/date.timezone = Asia\/Shanghai/'  "$PHP_INI_DIR/php.ini" \
     && sed -i 's/^;* *upload_max_filesize.*/upload_max_filesize = 16M/' "$PHP_INI_DIR/php.ini" \
-    && sed -i 's/^;* *post_max_size.*/post_max_size = 17M/'               "$PHP_INI_DIR/php.ini" 
+    && sed -i 's/^;* *post_max_size.*/post_max_size = 17M/'               "$PHP_INI_DIR/php.ini"   \
+    && sed -i 's/^;* *expose_php.*/expose_php = Off/'                       "$PHP_INI_DIR/php.ini"  
