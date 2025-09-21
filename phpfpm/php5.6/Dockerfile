@@ -37,6 +37,7 @@ RUN apk update \
     && docker-php-ext-install -j$(nproc) mysqli \
     && docker-php-ext-install -j$(nproc) pdo_mysql \
     && docker-php-ext-install -j$(nproc) pcntl \
+    && docker-php-ext-install -j$(nproc) zip \
 # 安装composer
     && curl https://getcomposer.org/download/${COMPOSER_VERSION}/composer.phar  -o /usr/local/bin/composer \
     && chmod +x /usr/local/bin/composer \

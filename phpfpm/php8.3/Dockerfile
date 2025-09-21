@@ -27,13 +27,14 @@ RUN apk update \
 # 
 # 通过docker-php-ext-install指令安装扩展
 #RUN apk update \
-    && apk add --no-cache tzdata freetype freetype-dev libpng libpng-dev libjpeg-turbo libjpeg-turbo-dev libwebp-dev \
+    && apk add --no-cache tzdata freetype freetype-dev libpng libpng-dev libjpeg-turbo libjpeg-turbo-dev libwebp-dev libzip-dev\
     && docker-php-ext-configure gd --with-webp=/usr/include/webp --with-jpeg=/usr/include --with-freetype=/usr/include/freetype2/ \
     && docker-php-ext-install -j$(nproc) gd \
     && docker-php-ext-install -j$(nproc) opcache \
     && docker-php-ext-install -j$(nproc) bcmath \
     && docker-php-ext-install -j$(nproc) pdo_mysql \
     && docker-php-ext-install -j$(nproc) pcntl \
+    && docker-php-ext-install -j$(nproc) zip \
 # 安装composer
     && curl https://getcomposer.org/download/${COMPOSER_VERSION}/composer.phar  -o /usr/local/bin/composer \
     && chmod +x /usr/local/bin/composer \
