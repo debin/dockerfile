@@ -4,7 +4,7 @@ LABEL org.opencontainers.image.title="php-fpm-runtime" \
     org.opencontainers.image.authors="debin" \
     org.opencontainers.image.description="PHP-FPM 镜像，支持 FPM 和 CLI。基于php:8.3-fpm-alpine3.24官方镜像，包含 Redis、ZIP、PDO MySQL、Composer 等"
 
-# 基础镜像已经包含时区数据，直接设置
+# 基础镜像已包含时区数据，直接设置
 ENV TZ="Asia/Shanghai"
 
 # 版本号查看
