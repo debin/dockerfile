@@ -1,52 +1,49 @@
-FROM php:8.3-fpm-alpine
+FROM php:8.3-fpm-alpine3.24
 
-LABEL MAINTAINER="debin<touch767@gmail.com>"
-LABEL description="php-fpm 镜像，已开启FCGI，可用于web服务，也可以用于运行 cli 程序。基于php:8.3-fpm-alpine官方镜像，包含redis,zip,pdo_mysql,composer等扩展"
+LABEL org.opencontainers.image.title="php-fpm-runtime" \
+    org.opencontainers.image.authors="debin" \
+    org.opencontainers.image.description="PHP-FPM 镜像，支持 FPM 和 CLI。基于php:8.3-fpm-alpine3.24官方镜像，包含 Redis、ZIP、PDO MySQL、Composer 等"
 
+# 基础镜像已经包含时区数据，直接设置
 ENV TZ="Asia/Shanghai"
-# ENV TERM=xterm
-# 默认关闭opcode
-ENV OPCODE=0
 
-ARG REDIS_VERSION=6.1.0
-ARG COMPOSER_VERSION=2.8.2
+# 版本号查看
+# https://pecl.php.net/package/redis
+# https://getcomposer.org/download/
+# https://github.com/mlocati/docker-php-extension-installer/releases
+ARG REDIS_VERSION=6.3.0
+ARG COMPOSER_VERSION=2.10.3
+ARG INSTALL_PHP_EXTENSIONS_VERSION=2.12.3
 
-# 切换alpine国内源
-#RUN echo 'https://mirrors.aliyun.com/alpine/v3.20/main/' > /etc/apk/repositories && \
-#    echo 'https://mirrors.aliyun.com/alpine/v3.20/community/' >> /etc/apk/repositories
-# sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+# 国内云服务器可按需切换 Alpine 软件源（阿里云腾讯云二选一），版本必须与基础镜像一致
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.aliyun.com/g' /etc/apk/repositories
+# RUN sed -i 's/dl-cdn.alpinelinux.org/mirrors.cloud.tencent.com/g' /etc/apk/repositories
 
+# 安装 PHP 扩展安装脚本
+RUN curl --retry 3 --retry-delay 2 -sSLf \
+    -o /usr/local/bin/install-php-extensions \
+    https://github.com/mlocati/docker-php-extension-installer/releases/download/${INSTALL_PHP_EXTENSIONS_VERSION}/install-php-extensions && \
+    chmod 755 /usr/local/bin/install-php-extensions
 
-# 通过pecl指令安装扩展
-# PHPIZE_DEPS 包含 gcc g++ 等编译辅助类库，完成编译后删除
-RUN apk update \
-    && apk add $PHPIZE_DEPS \
-    && pecl install redis-${REDIS_VERSION} \
-    && docker-php-ext-enable redis \
-    && apk del $PHPIZE_DEPS \
-# 
-# 通过docker-php-ext-install指令安装扩展
-#RUN apk update \
-    && apk add --no-cache tzdata freetype freetype-dev libpng libpng-dev libjpeg-turbo libjpeg-turbo-dev libwebp-dev libzip-dev\
-    && docker-php-ext-configure gd --with-webp=/usr/include/webp --with-jpeg=/usr/include --with-freetype=/usr/include/freetype2/ \
-    && docker-php-ext-install -j$(nproc) gd \
-    && docker-php-ext-install -j$(nproc) opcache \
-    && docker-php-ext-install -j$(nproc) bcmath \
-    && docker-php-ext-install -j$(nproc) pdo_mysql \
-    && docker-php-ext-install -j$(nproc) pcntl \
-    && docker-php-ext-install -j$(nproc) zip \
-# 安装composer
-    && curl https://getcomposer.org/download/${COMPOSER_VERSION}/composer.phar  -o /usr/local/bin/composer \
-    && chmod +x /usr/local/bin/composer \
-# 收尾
-    && rm -rf /var/cache/apk/* \
-    && rm -rf /root/.cache \
-    && rm -rf /tmp/*
-# docker-php-ext-install 指令已经包含编译辅助类库的删除逻辑
+# 安装 PHP 扩展及 Composer
+RUN IPE_GD_WITHOUTAVIF=1 install-php-extensions \
+    gd \
+    bcmath \
+    pdo_mysql \
+    pcntl \
+    zip \
+    redis-${REDIS_VERSION} \
+    @composer-${COMPOSER_VERSION}
 
-# php.ini配置文件修改
-RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini"  \
-    && sed -i 's/^;* *date.timezone.*/date.timezone = Asia\/Shanghai/'  "$PHP_INI_DIR/php.ini" \
-    && sed -i 's/^;* *upload_max_filesize.*/upload_max_filesize = 16M/' "$PHP_INI_DIR/php.ini" \
-    && sed -i 's/^;* *post_max_size.*/post_max_size = 17M/'               "$PHP_INI_DIR/php.ini"   \
-    && sed -i 's/^;* *expose_php.*/expose_php = Off/'                       "$PHP_INI_DIR/php.ini"  
+# 使用生产环境配置并自定义优化项
+RUN cp "$PHP_INI_DIR/php.ini-production" "$PHP_INI_DIR/php.ini" \
+    && printf '%s\n' \
+        'date.timezone = Asia/Shanghai' \
+        'upload_max_filesize = 16M' \
+        'post_max_size = 17M' \
+        'expose_php = Off' \
+        'opcache.enable = 1' \
+        'opcache.validate_timestamps = 1' \
+        'opcache.revalidate_freq = 60' \
+        'session.upload_progress.enabled = 0' \
+        > "$PHP_INI_DIR/conf.d/99-docker-custom.ini"
